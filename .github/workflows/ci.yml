@@ -48,17 +48,3 @@ jobs:
             PYTHONPATH=. python3 -m unittest discover -s tests -p 'test*.py' -v
           fi
           [ "$found" = 1 ] || echo "Aucun test dans le depot pour l'instant."
-name: ci
-on:
-  pull_request:
-  push:
-    branches: [main]
-permissions:
-  contents: read
-jobs:
-  verif:
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    steps:
-      - name: Verification minimale
-        run: echo "CI sandbox OK"
