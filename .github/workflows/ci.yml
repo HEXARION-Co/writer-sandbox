@@ -1,3 +1,53 @@
+# writer-sandbox : .github/workflows/ci.yml
+# A mettre en place A LA MAIN (le Writer n'a pas le droit de toucher .github/).
+#
+# - Aucune action externe (regle de l'organisation : actions epinglees) :
+#   le code est recupere avec git, au commit exact que GitHub teste.
+# - Aucun secret. Le jeton en lecture seule ne sert qu'a recuperer le code :
+#   il n'est jamais visible par les etapes qui executent le code des agents.
+# - Echoue si un fichier Python ne compile pas ou si un test echoue.
+name: ci
+on:
+  pull_request:
+  push:
+    branches: [main]
+permissions:
+  contents: read
+jobs:
+  verif:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - name: Recuperer le code (commit exact, sans action externe)
+        env:
+          REPO: ${{ github.repository }}
+          SHA: ${{ github.sha }}
+          TOKEN: ${{ github.token }}
+        run: |
+          git init -q .
+          auth="$(printf 'x-access-token:%s' "$TOKEN" | base64 -w0)"
+          git -c "http.https://github.com/.extraheader=AUTHORIZATION: basic $auth" \
+            fetch -q --no-tags --depth 1 "https://github.com/$REPO" "$SHA"
+          git checkout -q --detach FETCH_HEAD
+          test "$(git rev-parse HEAD)" = "$SHA"
+          git log -1 --format='commit teste : %H %s'
+
+      - name: Syntaxe Python
+        run: python3 -m compileall -q -x '/\.git/' .
+
+      - name: Tests
+        run: |
+          python3 --version
+          found=0
+          if find . -maxdepth 1 -name 'test*.py' | grep -q .; then
+            found=1
+            python3 -m unittest discover -s . -p 'test*.py' -v
+          fi
+          if [ -d tests ] && find tests -name 'test*.py' | grep -q .; then
+            found=1
+            PYTHONPATH=. python3 -m unittest discover -s tests -p 'test*.py' -v
+          fi
+          [ "$found" = 1 ] || echo "Aucun test dans le depot pour l'instant."
 name: ci
 on:
   pull_request:
