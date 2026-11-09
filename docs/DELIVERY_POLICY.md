@@ -6,6 +6,16 @@
 
 **Livrer régulièrement des versions réellement utilisables, plutôt que prolonger indéfiniment des branches et attendre une V1 parfaite.** Préserver la stabilité de la branche de référence.
 
+## Fusion autonome des PR prêtes — impératif
+
+**Ne pas attendre que l'utilisateur dise « vert », « go » ou redemande une fusion.** Pour toute PR existante ou nouvellement créée, l'agent qui en a la charge vérifie les prérequis, puis la fusionne **dès qu'elle est réellement prête**. La finalité est de publier en continu des préversions stables, pas d'accumuler des PR déjà vertes.
+
+1. Avant de fusionner : inspecter le diff et les dépendances, exclure tout conflit/collision de fichiers et toute tâche de sécurité non résolue ; vérifier **toutes** les CI exigées sur le **SHA exact du HEAD**, les tests et les approbations/revues obligatoires. Une CI absente, pending, skipped, stale ou un test « vert » sur un ancien SHA n'est jamais une autorisation.
+2. **Activer l'auto-merge natif de GitHub dès que possible**, uniquement si les protections du dépôt garantissent que les checks/revues requis seront satisfaits avant la fusion. Sinon, vérifier proactivement les statuts et déclencher la fusion immédiatement dès que les conditions sont prouvées ; ne pas reporter à une prochaine demande de l'utilisateur.
+3. Ne **jamais** contourner les protections, approbations humaines imposées, branches protégées, règles de propriété de fichiers, exigences de staging ou permissions. Si une approbation est réellement requise, la signaler explicitement ; il n'y a pas de fusion implicite.
+4. Une PR rouge doit être corrigée **dans sa branche existante** si possible, avec un nouveau run CI ; ne pas créer une micro-PR de contournement, masquer un test, ni relancer aveuglément.
+5. Après la fusion, vérifier la CI du trunk, documenter le SHA fusionné et poursuivre **le prochain lot livrable** sans attendre. La fusion de code ne vaut pas permission automatique de déployer en production ni d'effectuer des actions externes sensibles.
+
 ## Règles de travail
 
 1. La branche de référence (`main`) est le **trunk** : elle doit rester vérifiable, intégrable et publiable pour le périmètre activé. Ne pas renommer une branche existante pour appliquer la méthode.
